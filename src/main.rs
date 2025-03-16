@@ -1,3 +1,4 @@
+use chrono::{Local, TimeZone};
 use colored::{ColoredString, Colorize};
 use serde_json::{Map, Value};
 use std::io;
@@ -53,10 +54,15 @@ fn pretty(line: &str) -> String {
             let message = get_value_as_string(&value, KEYS.message);
             let level = get_value_as_string(&value, KEYS.level);
             let timestamp = get_value_as_string(&value, KEYS.timestamp);
-            format!("[{}] {} : {}", timestamp, colorize_level(level), message)
+            format!("[{}] {} : {}", format_timestamp(timestamp.as_str()), colorize_level(level.as_str()), message)
         }
         _ => line.to_string(),
     }
+}
+
+fn format_timestamp(timestamp: &str) -> String {
+    let date_time = Local.timestamp_opt(timestamp.parse::<i64>().unwrap(), 0).unwrap();
+    date_time.format("%H:%M:%S").to_string()
 }
 
 fn level(level: &str) -> LogLevel {
@@ -75,8 +81,8 @@ fn level(level: &str) -> LogLevel {
     }
 }
 
-fn colorize_level(l: String) -> ColoredString {
-    match level(l.as_str()) {
+fn colorize_level(l: &str) -> ColoredString {
+    match level(l) {
         LogLevel::Debug => l.normal(),
         LogLevel::Info => l.green(),
         LogLevel::Warn => l.yellow(),
